@@ -59,12 +59,14 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars); // display the file urls_show.ejs
 });
 
+// after putting in the shortURL in the address bar, gets redirected to the longURL
 app.get("/u/:shortURL", (req, res) => {
   const shortURLvar = req.params.shortURL;
   const longURL = urlDatabase[shortURLvar];
   res.redirect(longURL);
 });
 
+// Hello World page
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
