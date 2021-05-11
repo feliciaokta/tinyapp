@@ -23,32 +23,46 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// displays hello
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// shows all URLs
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
+// adds new URL to database
 app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = `http://${longURL}`;
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  res.redirect(`/urls/${shortURL}`);         // redirect to line 56
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// displaying new URL form
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// displaying the page about a single URL
 app.get("/urls/:shortURL", (req, res) => {
   const shortURLvar = req.params.shortURL;
   const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar] };
-  res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars); // display the file urls_show.ejs
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURLvar = req.params.shortURL;
+  const longURL = urlDatabase[shortURLvar];
+  res.redirect(longURL);
 });
 
 app.get("/hello", (req, res) => {
