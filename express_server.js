@@ -71,6 +71,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar] };
   res.render("urls_show", templateVars); // display the file urls_show.ejs
 });
+// the :shortURL is stored inside req.params.
+// This is called dynamic URL bcs the :shortURL will change according to what it is
+// req.params is used when you're taking dynamic value for the URL
+// req.body is used when you're taking data from an input form textbox
 
 // after putting in the shortURL in the address bar & pressing enter, we get redirected to the longURL
 app.get("/u/:shortURL", (req, res) => {
@@ -97,8 +101,7 @@ app.post("/urls/:id",(req, res)=>{
 
 // login button route
 app.post("/login", (req, res) => {
-  const cookieObject = cookieParser.JSONCookies(req.cookies);
-  // console.log(cookieObject);
+  // const cookieObject = cookieParser.JSONCookies(req.cookies);
   const filledUsername = req.body.username;
   const templateVars = {
     username: req.cookies["username"],
@@ -115,5 +118,7 @@ app.post("/logout", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tinyapp server listening on port ${PORT}!`);
 });
+
+
