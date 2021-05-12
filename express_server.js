@@ -43,6 +43,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);         // redirect to line 56
 });
 
+// prints urlDatabase as an object
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -75,6 +76,14 @@ app.get("/hello", (req, res) => {
 app.post("/urls/:shortURL/delete",(req, res)=>{
   const idToDelete = req.params.shortURL;
   delete urlDatabase[idToDelete];
+  res.redirect("/urls");
+});
+
+// edit button
+app.post("/urls/:id",(req, res)=>{
+  const idToEdit = req.body["updated URL"][0];
+  const shortURLKey = req.params;
+  urlDatabase[shortURLKey["id"]] = idToEdit;
   res.redirect("/urls");
 });
 
