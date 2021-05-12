@@ -9,23 +9,21 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        
-        <% if(!username) { %>
-        <form method="POST" action="/login">
-          <label for="username">Username</label>
-          <input id="username" type="text" name="username" />
-            <button type="submit">Submit</button>
-          </form>
-          <% } %>
-          <% if(username) { %>
-            <h3>Logged In As: <%= username %></h3>
-            <form method="POST" action="/logout">
-                <button type="submit">Logout</button>
-              </form>
-          <% } %> 
       </div>
     </div>
+    <% if(!username) { %>
+    <form method="POST" action="/login">
+      <label for="username">Username</label>
+      <input id="username" type="text" name="username" />
+        <button type="submit">Submit</button>
+      </form>
+      <% } %>
+      <% if(username) { %>
+        <h3>Logged In As: <%= username %></h3>
+        <form method="POST" action="/logout">
+            <button type="submit">Logout</button>
+          </form>
+      <% } %> 
   </nav>
 </header>
 
-<!-- later in password form put input type = "password", so then it becomes dots displayed in the textbox -->
