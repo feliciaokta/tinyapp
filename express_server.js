@@ -33,7 +33,10 @@ app.get("/", (req, res) => {
 
 // shows all URLs
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -87,6 +90,25 @@ app.post("/urls/:id",(req, res)=>{
   const idToEdit = req.body["updated URL"][0];
   const shortURLKey = req.params;
   urlDatabase[shortURLKey["id"]] = idToEdit;
+  res.redirect("/urls");
+});
+
+// login button route
+app.post("/login", (req, res) => {
+  const cookieObject = cookieParser.JSONCookies(req.cookies);
+  // console.log(cookieObject);
+  const filledUsername = req.body.username;
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
+  res.cookie('username', filledUsername); // "username" is the name of the cookie, then variable
+  res.render("urls_index", templateVars);
+});
+
+// logout button route
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
   res.redirect("/urls");
 });
 
