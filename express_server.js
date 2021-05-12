@@ -31,7 +31,13 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-// shows all URLs
+// Hello World page
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
+});
+
+// "HOMEPAGE"
+// shows all URLs (both long and short), edit button, delete button
 app.get("/urls", (req, res) => {
   const templateVars = {
     username: req.cookies["username"],
@@ -45,8 +51,8 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = `http://${longURL}`;
-  console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/${shortURL}`);         // redirect to line 56
+  // console.log(req.body);  // Log the POST request body to the console
+  res.redirect(`/urls/${shortURL}`);         // redirect to line app.get "/urls/:shortURL"
 });
 
 // prints urlDatabase as an object
@@ -59,24 +65,20 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-// displaying the page about a single URL
+// displaying the page about a single URL, both the short one & long one
 app.get("/urls/:shortURL", (req, res) => {
   const shortURLvar = req.params.shortURL;
   const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar] };
   res.render("urls_show", templateVars); // display the file urls_show.ejs
 });
 
-// after putting in the shortURL in the address bar, gets redirected to the longURL
+// after putting in the shortURL in the address bar & pressing enter, we get redirected to the longURL
 app.get("/u/:shortURL", (req, res) => {
   const shortURLvar = req.params.shortURL;
   const longURL = urlDatabase[shortURLvar];
   res.redirect(longURL);
 });
 
-// Hello World page
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
 
 // delete button, delete a specified saved shortURL
 app.post("/urls/:shortURL/delete",(req, res)=>{
@@ -85,7 +87,7 @@ app.post("/urls/:shortURL/delete",(req, res)=>{
   res.redirect("/urls");
 });
 
-// edit button
+// edit button route
 app.post("/urls/:id",(req, res)=>{
   const idToEdit = req.body["updated URL"][0];
   const shortURLKey = req.params;
