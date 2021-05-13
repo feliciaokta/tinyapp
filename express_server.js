@@ -105,9 +105,15 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// displaying new URL form ... doesn't work by itself?
+// displaying new URL form ... ?
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const user = req.cookies["id"];
+  console.log("user: ", user);
+  if (user === "") {
+    res.render("urls_login");
+  } else {
+    res.render("urls_new");
+  };
 });
 
 // displaying the page about a single URL, both the long one on top & short one below it
@@ -209,7 +215,7 @@ app.post("/register", (req, res) => {
     users[id] = newUser;
     
     res.cookie("id", id);
-    res.redirect("/urls");
+    res.redirect("/urls");    // post is with redirect, get is with render
     console.log("check", users);
   }
 });
