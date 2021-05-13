@@ -165,7 +165,9 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
   const user = getUserByEmail(email, users);
   if (!user) {
-    res.send("User doesn't exist");
+    res.status(403).send("User doesn't exist");
+  } else if (password !== user.password) {
+    res.status(403).send("Wrong password");
   } else {
     res.cookie("id", user.id); // "id" is the name of the cookie, then variable
     res.redirect("/urls");
