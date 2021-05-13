@@ -1,5 +1,9 @@
 const express = require("express");
 const app = express();
+
+const morgan = require('morgan');
+app.use(morgan('dev'));
+
 const PORT = 8080; // default port 8080
 
 const cookieParser = require("cookie-parser");
@@ -12,9 +16,10 @@ app.set("view engine", "ejs");
 
 
 // urls global object
+// key is shortURL
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "userRandomID" }
 };
 
 // users global object
@@ -84,7 +89,11 @@ app.get("/urls", (req, res) => {
     user: user,
     urls: urlDatabase
   };
-  res.render("urls_index", templateVars);
+  if (!user) {
+    res.render("urls_login");
+  } else {
+    res.render("urls_index", templateVars);
+  };
 });
 
 
@@ -95,7 +104,7 @@ app.post("/urls", (req, res) => {
   
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = `http://${longURL}`;
-  // console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);
   
   res.redirect(`/urls/${shortURL}`);         // redirect to line app.get "/urls/:shortURL"
 });
@@ -105,14 +114,15 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// displaying new URL form ... ?
+// displaying new URL form to input new longURL & add it to the list
 app.get("/urls/new", (req, res) => {
-  const user = req.cookies["id"];
+  const user = users[req.cookies["id"]];
+  const templateVars = {user: user};
   console.log("user: ", user);
-  if (user === "") {
+  if (!user) {
     res.render("urls_login");
   } else {
-    res.render("urls_new");
+    res.render("urls_new", templateVars);
   };
 });
 
@@ -134,7 +144,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   
   const shortURLvar = req.params.shortURL;
-  const longURL = urlDatabase[shortURLvar];
+  const longURL = urlDatabase[shortURLvar]["longURL"];
   
   res.redirect(longURL);
 });
@@ -151,7 +161,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // edit button route ... broken, need to fix again later
 app.post("/urls/:id", (req, res) => {
-
+  const user = users[req.cookies["id"]];
   const idToEdit = req.body["updated URL"][0];
   // console.log("idToEdit before: ", idToEdit);
   
