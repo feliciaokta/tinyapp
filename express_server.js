@@ -83,7 +83,7 @@ const urlsForUser = (id) => {
   for (const key in shortURLKey) {
       let serialNumbers = shortURLKey[key];
     if (id === urlDatabase[serialNumbers]["userID"]) {
-      console.log(urlDatabase[serialNumbers]);
+      // console.log(urlDatabase[serialNumbers]);
       result[serialNumbers] = urlDatabase[serialNumbers]["longURL"];
     }
   }
@@ -162,6 +162,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 
+// edit button route
 // displaying the page about a single URL, both the long one on top & short one below it
 app.get("/urls/:shortURL", (req, res) => {
   // use urlsForUser(id) to return the list of short URLs that belong to the user
@@ -175,14 +176,16 @@ app.get("/urls/:shortURL", (req, res) => {
   };
 
   const shortURLvar = req.params.shortURL;
+  console.log("shortURLvar: ", shortURLvar); // this keeps generating new shortURLs instead of taking it from the current URL
+  
+  const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
+  console.log("usersURLs: ", usersURLs);
   
   const templateVars = {
     user: user,
     shortURL: shortURLvar,
-    longURL: urlDatabase[shortURLvar]["longURL"]
+    longURL: usersURLs[shortURLvar]
   };
-  
-  const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
   
   for (const key in usersURLs) {
       if (key === shortURLvar) {
@@ -195,6 +198,30 @@ app.get("/urls/:shortURL", (req, res) => {
 // This is called dynamic URL bcs the :shortURL will change according to what it is
 // req.params is used when you're taking dynamic value for the URL
 // req.body is used when you're taking data from an input form textbox
+
+
+// update button route inside the edit button link ... broken, need to fix later
+app.post("/urls/:shortURL", (req, res) => {
+  const user = users[req.cookies["id"]];
+
+  if (!user) {
+    res.render("urls_login");
+  };
+
+  console.log("check");
+  const idToEdit = req.body["updated URL"][0];   // "updated URL" from url_show.ejs
+  console.log("req.body", req.body);
+  console.log("idToEdit before: ", idToEdit);
+  
+  const shortURLKey = req.params;
+  console.log("shortURLKey: ", shortURLKey);
+  
+  urlDatabase[shortURLKey["id"]] = idToEdit;
+  console.log("idToEdit after: ", idToEdit);
+  
+  res.redirect("/urls");
+});
+
 
 
 // after putting in the shortURL in the address bar & pressing enter, we get redirected to the longURL
@@ -230,23 +257,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
   const idToDelete = req.params.shortURL;
   delete urlDatabase[idToDelete];
-  
-  res.redirect("/urls");
-});
-
-
-// edit button route ... broken, need to fix later
-app.post("/urls/:id", (req, res) => {
-  const user = users[req.cookies["id"]];
-
-  const idToEdit = req.body["updated URL"][0];
-  // console.log("idToEdit before: ", idToEdit);
-  
-  const shortURLKey = req.params;
-  // console.log("shortURLKey: ", shortURLKey);
-  
-  urlDatabase[shortURLKey["id"]] = idToEdit;
-  // console.log("idToEdit after: ", idToEdit);
   
   res.redirect("/urls");
 });
@@ -305,7 +315,7 @@ app.post("/register", (req, res) => {
   
   const password = req.body.password;
   const userData = getUserByEmail(email, users);
-  console.log(userData);
+  // console.log(userData);
   // console.log("inside app.post: ", user);
   if (userData !== false) {
     res.status(404).send("This user already exists");   // set error number
@@ -318,7 +328,7 @@ app.post("/register", (req, res) => {
     
     res.cookie("id", id);
     res.redirect("/urls");    // post is with redirect, get is with render
-    console.log("check", users);
+    // console.log("check", users);
   }
 });
 
