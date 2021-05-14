@@ -28,8 +28,8 @@
             <!-- tr = table row -->
             <td><%= url %></td>
             <td><%= urls[url] %></td>
-            <form method="POST" a href="/urls/<%= url %>">
-              <td><button>Edit</button></td></a>
+            <form method="GET" action="/urls/<%= url %>">
+              <td><button>Edit</button></td>
             </form>
             <form method="POST" action="/urls/<%= url %>/delete">
                 <td><button>Delete</button></td>

@@ -130,16 +130,20 @@ app.get("/urls", (req, res) => {
 });
 
 
-// adds new URL to database
+// adds new URL to database from the "create a new URL" page
 app.post("/urls", (req, res) => {
   
+  const user = users[req.cookies["id"]];
+
   const shortURL = generateRandomString();
   
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = `http://${longURL}`;
-  // console.log(req.body);
-  
-  res.redirect(`/urls/${shortURL}`);         // redirect to line app.get "/urls/:shortURL"
+  urlDatabase[shortURL] = {
+    longURL: `http://${longURL}`,
+    userID: user["id"]
+  };
+
+  res.redirect(`/urls/${shortURL}`);  // redirect to line app.get "/urls/:shortURL"
 });
 
 
@@ -176,10 +180,8 @@ app.get("/urls/:shortURL", (req, res) => {
   };
 
   const shortURLvar = req.params.shortURL;
-  console.log("shortURLvar: ", shortURLvar); // this keeps generating new shortURLs instead of taking it from the current URL
   
   const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
-  console.log("usersURLs: ", usersURLs);
   
   const templateVars = {
     user: user,
@@ -208,16 +210,12 @@ app.post("/urls/:shortURL", (req, res) => {
     res.render("urls_login");
   };
 
-  console.log("check");
-  const idToEdit = req.body["updated URL"][0];   // "updated URL" from url_show.ejs
-  console.log("req.body", req.body);
-  console.log("idToEdit before: ", idToEdit);
+  const idToEdit = req.body["updated URL"];   // "updated URL" from url_show.ejs
+  // console.log("idToEdit before: ", idToEdit);
   
-  const shortURLKey = req.params;
-  console.log("shortURLKey: ", shortURLKey);
+  const shortURLKey = req.params["shortURL"];
   
-  urlDatabase[shortURLKey["id"]] = idToEdit;
-  console.log("idToEdit after: ", idToEdit);
+  urlDatabase[shortURLKey]["longURL"] = idToEdit;
   
   res.redirect("/urls");
 });
@@ -295,7 +293,7 @@ app.get("/login", (req, res) => {
 // logout button route
 app.post("/logout", (req, res) => {
   res.clearCookie("id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 
