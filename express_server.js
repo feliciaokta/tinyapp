@@ -109,6 +109,7 @@ app.get("/hello", (req, res) => {
 // shows all URLs (both long and short), edit button, delete button
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["id"]];
+  // console.log("1.", user);
   const templateVars = {
     user: user,
     urls: urlDatabase
@@ -116,6 +117,7 @@ app.get("/urls", (req, res) => {
   if (!user) {
     res.render("urls_login");
   } else {
+    // if (urlDatabase[shortURL??]["userID"] === user["id"])
     res.render("urls_index", templateVars);
   };
 });
@@ -158,28 +160,33 @@ app.get("/urls/:shortURL", (req, res) => {
   // use urlsForUser(id) to return the list of short URLs that belong to the user
   // check if shortURLvar is inside this object as a key
   // if false, sorry you don't have permission to access
-  
-  // shortURL for LL in 1st user b2xVn2
-  // shortURL for google in 1st user 9sm5xK
 
-  const shortURLvar = req.params.shortURL;
-  
-  const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar]["longURL"] };
-  
-  const usersURLs = urlsForUser(users[req.cookies["id"]]);
-  
-  for (const key in usersURLs) {
-    console.log("check");
-    for (const key2 in shortURLvar) {
-      if (key !== key2) {
-        res.send("Sorry, you do not have permission to access, go back to login page");
-        res.render("urls_login");
-      } else {
-        res.render("urls_show", templateVars); // display the file urls_show.ejs
-      }
-    }
+  const user = users[req.cookies["id"]];
+
+  if (!user) {
+    res.render("urls_login");
   };
 
+  const shortURLvar = req.params.shortURL;
+  console.log("1. ", shortURLvar);
+  
+  const templateVars = {
+    user: user,
+    shortURL: shortURLvar,
+    longURL: urlDatabase[shortURLvar]["longURL"] };
+  console.log("2. ", templateVars);
+  
+  const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
+  console.log("3. ", usersURLs);
+  console.log("4. ", users[req.cookies["id"]]["id"]);
+  
+  for (const key in usersURLs) {
+    console.log(key);
+      if (key === shortURLvar) {
+        res.render("urls_show", templateVars); // display the file urls_show.ejs
+        return;
+      }
+  };
 });
 // the :shortURL is stored inside req.params.
 // This is called dynamic URL bcs the :shortURL will change according to what it is
