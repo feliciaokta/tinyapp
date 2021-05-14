@@ -1,16 +1,19 @@
 const express = require("express");
 const app = express();
 
+const PORT = 8080; // default port 8080
+
 const morgan = require('morgan');
 app.use(morgan('dev'));
-
-const PORT = 8080; // default port 8080
 
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
 
 app.set("view engine", "ejs");
 
@@ -159,7 +162,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {user: user};
   // console.log("user: ", user);
   if (!user) {
-    res.render("urls_login");
+    res.render("urls_login", templateVars);
   } else {
     res.render("urls_new", templateVars);
   };
@@ -247,6 +250,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     urls: "",
   };
 
+  // if the logged-in user ID is the same as the owner of the link from the urlDatabase, then urls in the template is replaced with user's URLs
   for (const key in usersURLs) {
     if (urlDatabase[key]["userID"] === user["id"]) {
       templateVars["urls"] = usersURLs;
@@ -264,16 +268,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/login", (req, res) => {
 
   const email = req.body.email;
+
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  
   const user = getUserByEmail(email, users);
+  const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
+
   if (!user) {
-    res.status(403).send("User doesn't exist");
-  } else if (password !== user.password) {
-    res.status(403).send("Wrong password");
+    res.status(403).send("User doesn't exist, please register");
+  } else if (!comparePassword) {
+    res.status(403).send("Wrong password, go back to login page");
   } else {
     res.cookie("id", user.id); // "id" is the name of the cookie, then variable
     res.redirect("/urls");
-    // res.send("Successfully Logged In");
   }
 });
 
@@ -299,7 +307,8 @@ app.post("/logout", (req, res) => {
 
 // registration page
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  const templateVars = {user: null};
+  res.render("urls_register", templateVars);
 });
 
 
@@ -312,21 +321,21 @@ app.post("/register", (req, res) => {
   };
   
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const userData = getUserByEmail(email, users);
-  // console.log(userData);
-  // console.log("inside app.post: ", user);
   if (userData !== false) {
     res.status(404).send("This user already exists");   // set error number
     return;
   } else {
     const id = generateRandomUserID();
     
-    const newUser = {id, email, password};
+    const newUser = {id, email, password: hashedPassword};
+    console.log(newUser);
     users[id] = newUser;
     
     res.cookie("id", id);
     res.redirect("/urls");    // post is with redirect, get is with render
-    // console.log("check", users);
   }
 });
 
