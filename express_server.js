@@ -109,17 +109,24 @@ app.get("/hello", (req, res) => {
 // shows all URLs (both long and short), edit button, delete button
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["id"]];
-  // console.log("1.", user);
-  const templateVars = {
-    user: user,
-    urls: urlDatabase
-  };
+  
   if (!user) {
     res.render("urls_login");
-  } else {
-    // if (urlDatabase[shortURL??]["userID"] === user["id"])
-    res.render("urls_index", templateVars);
   };
+  
+  const usersURLs = urlsForUser(req.cookies["id"]);
+  
+  const templateVars = {
+    user: user,
+    urls: "",
+  };
+
+  for (const key in usersURLs) {
+    if (urlDatabase[key]["userID"] === user["id"]) {
+      templateVars["urls"] = usersURLs;
+    }
+  };
+  res.render("urls_index", templateVars);
 });
 
 
@@ -168,20 +175,16 @@ app.get("/urls/:shortURL", (req, res) => {
   };
 
   const shortURLvar = req.params.shortURL;
-  console.log("1. ", shortURLvar);
   
   const templateVars = {
     user: user,
     shortURL: shortURLvar,
-    longURL: urlDatabase[shortURLvar]["longURL"] };
-  console.log("2. ", templateVars);
+    longURL: urlDatabase[shortURLvar]["longURL"]
+  };
   
   const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
-  console.log("3. ", usersURLs);
-  console.log("4. ", users[req.cookies["id"]]["id"]);
   
   for (const key in usersURLs) {
-    console.log(key);
       if (key === shortURLvar) {
         res.render("urls_show", templateVars); // display the file urls_show.ejs
         return;
@@ -206,7 +209,25 @@ app.get("/u/:shortURL", (req, res) => {
 
 // delete button, delete a specified saved shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = users[req.cookies["id"]];
   
+  if (!user) {
+    res.render("urls_login");
+  };
+  
+  const usersURLs = urlsForUser(req.cookies["id"]);
+  
+  const templateVars = {
+    user: user,
+    urls: "",
+  };
+
+  for (const key in usersURLs) {
+    if (urlDatabase[key]["userID"] === user["id"]) {
+      templateVars["urls"] = usersURLs;
+    }
+  };
+
   const idToDelete = req.params.shortURL;
   delete urlDatabase[idToDelete];
   
@@ -217,6 +238,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // edit button route ... broken, need to fix later
 app.post("/urls/:id", (req, res) => {
   const user = users[req.cookies["id"]];
+
   const idToEdit = req.body["updated URL"][0];
   // console.log("idToEdit before: ", idToEdit);
   
