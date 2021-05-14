@@ -31,8 +31,8 @@ const users = {
   },
   "user2RandomID": {
     id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+    email: "2@2.com",
+    password: "2"
   }
 };
 
@@ -71,15 +71,39 @@ const getUserByEmail = (email, users) => {
     return false;
 };
 
+// function to return URLs where the userID is equal to the current logged-in user
+const urlsForUser = (id) => {
+  // use Object.keys for shortURL
+  // for loop all keys
+  // when they match, add into an empty object
+  let result = {};
+  let shortURLKey = Object.keys(urlDatabase);
+
+  
+  for (const key in shortURLKey) {
+      let serialNumbers = shortURLKey[key];
+    if (id === urlDatabase[serialNumbers]["userID"]) {
+      console.log(urlDatabase[serialNumbers]);
+      result[serialNumbers] = urlDatabase[serialNumbers]["longURL"];
+    }
+  }
+  return result;
+}
+
+
+
+
 // displays hello
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+
 // Hello World page
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
 
 // "HOMEPAGE"
 // shows all URLs (both long and short), edit button, delete button
@@ -109,16 +133,18 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);         // redirect to line app.get "/urls/:shortURL"
 });
 
+
 // prints urlDatabase as an object
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+
 // displaying new URL form to input new longURL & add it to the list
 app.get("/urls/new", (req, res) => {
   const user = users[req.cookies["id"]];
   const templateVars = {user: user};
-  console.log("user: ", user);
+  // console.log("user: ", user);
   if (!user) {
     res.render("urls_login");
   } else {
@@ -126,19 +152,40 @@ app.get("/urls/new", (req, res) => {
   };
 });
 
+
 // displaying the page about a single URL, both the long one on top & short one below it
 app.get("/urls/:shortURL", (req, res) => {
+  // use urlsForUser(id) to return the list of short URLs that belong to the user
+  // check if shortURLvar is inside this object as a key
+  // if false, sorry you don't have permission to access
   
+  // shortURL for LL in 1st user b2xVn2
+  // shortURL for google in 1st user 9sm5xK
+
   const shortURLvar = req.params.shortURL;
   
-  const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar] };
+  const templateVars = { shortURL: shortURLvar, longURL: urlDatabase[shortURLvar]["longURL"] };
   
-  res.render("urls_show", templateVars); // display the file urls_show.ejs
+  const usersURLs = urlsForUser(users[req.cookies["id"]]);
+  
+  for (const key in usersURLs) {
+    console.log("check");
+    for (const key2 in shortURLvar) {
+      if (key !== key2) {
+        res.send("Sorry, you do not have permission to access, go back to login page");
+        res.render("urls_login");
+      } else {
+        res.render("urls_show", templateVars); // display the file urls_show.ejs
+      }
+    }
+  };
+
 });
 // the :shortURL is stored inside req.params.
 // This is called dynamic URL bcs the :shortURL will change according to what it is
 // req.params is used when you're taking dynamic value for the URL
 // req.body is used when you're taking data from an input form textbox
+
 
 // after putting in the shortURL in the address bar & pressing enter, we get redirected to the longURL
 app.get("/u/:shortURL", (req, res) => {
@@ -159,7 +206,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// edit button route ... broken, need to fix again later
+
+// edit button route ... broken, need to fix later
 app.post("/urls/:id", (req, res) => {
   const user = users[req.cookies["id"]];
   const idToEdit = req.body["updated URL"][0];
@@ -173,6 +221,7 @@ app.post("/urls/:id", (req, res) => {
   
   res.redirect("/urls");
 });
+
 
 // login button route, on header
 app.post("/login", (req, res) => {
@@ -191,11 +240,25 @@ app.post("/login", (req, res) => {
   }
 });
 
+
+// login button from login page
+app.get("/login", (req, res) => {
+  
+  const templateVars = {
+    user: users[req.cookies["id"]],
+    urls: urlDatabase
+  };
+
+  res.render("urls_login", templateVars);
+});
+
+
 // logout button route
 app.post("/logout", (req, res) => {
   res.clearCookie("id");
   res.redirect("/urls");
 });
+
 
 // registration page
 app.get("/register", (req, res) => {
@@ -228,17 +291,6 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");    // post is with redirect, get is with render
     console.log("check", users);
   }
-});
-
-// login button from login page
-app.get("/login", (req, res) => {
-  
-  const templateVars = {
-    user: users[req.cookies["id"]],
-    urls: urlDatabase
-  };
-
-  res.render("urls_login", templateVars);
 });
 
 
