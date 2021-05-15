@@ -74,15 +74,18 @@ function generateRandomUserID() {
   return result.join('');
 };
 
-// function used in registration
-const getUserByEmail = (email, users) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-    return false;
-};
+const getIDByEmail = require("./helpers");
+
+
+// // function used in registration
+// const getUserByEmail = (email, users) => {
+//   for (const user in users) {
+//     if (users[user].email === email) {
+//       return users[user];
+//     }
+//   }
+//     return false;
+// };
 
 // function to return URLs where the userID is equal to the current logged-in user
 const urlsForUser = (id) => {
@@ -285,7 +288,7 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
   
-  const user = getUserByEmail(email, users);
+  const user = getIDByEmail(email, users);
   
   if (user) {
     const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
@@ -345,7 +348,7 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  const userData = getUserByEmail(email, users);
+  const userData = getIDByEmail(email, users);
   if (userData !== false) {
     res.status(404).send("This user already exists");   // set error number
     return;
