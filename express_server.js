@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 const morgan = require('morgan');
 app.use(morgan('dev'));
@@ -17,7 +17,7 @@ app.use(cookieSession({
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -39,54 +39,47 @@ const urlDatabase = {
 
 const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
   "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
 
+
 // generate 6 random letters for shortURL
 function generateRandomString() {
-  var result = [];
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
+  let result = [];
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let charactersLength = characters.length;
   for (var i = 0; i < 6; i++) {
     result.push(characters.charAt(Math.floor(Math.random() *
       charactersLength)));
   }
   return result.join('');
-};
+}
 
 
 // function to generate 9 characters for random user ID
 function generateRandomUserID() {
-  var result = [];
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
+  let result = [];
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let charactersLength = characters.length;
   for (var i = 0; i < 9; i++) {
     result.push(characters.charAt(Math.floor(Math.random() *
     charactersLength)));
   }
   return result.join('');
-};
+}
+
 
 const getIDByEmail = require("./helpers");
 
 
-// // function used in registration
-// const getUserByEmail = (email, users) => {
-//   for (const user in users) {
-//     if (users[user].email === email) {
-//       return users[user];
-//     }
-//   }
-//     return false;
-// };
 
 // function to return URLs where the userID is equal to the current logged-in user
 const urlsForUser = (id) => {
@@ -95,19 +88,18 @@ const urlsForUser = (id) => {
   let result = {};
   let shortURLKey = Object.keys(urlDatabase);
   
-  
   // for loop all object keys
   // when they match, add into an empty object
   for (const key in shortURLKey) {
-      let serialNumbers = shortURLKey[key];
+    let serialNumbers = shortURLKey[key];
+    
     if (id === urlDatabase[serialNumbers]["userID"]) {
-      // console.log(urlDatabase[serialNumbers]);
       result[serialNumbers] = urlDatabase[serialNumbers]["longURL"];
     }
+
   }
   return result;
-}
-
+};
 
 
 
@@ -117,10 +109,12 @@ app.get("/", (req, res) => {
 });
 
 
+
 // Hello World page
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
 
 
 // "HOMEPAGE"
@@ -134,7 +128,7 @@ app.get("/urls", (req, res) => {
     // res.render("urls_login", templateVarsNull);
     res.send("Please login first");
     return;
-  };
+  }
   
   const usersURLs = urlsForUser(req.session.user_id);  ////////////
   
@@ -142,7 +136,6 @@ app.get("/urls", (req, res) => {
     user: user,
     urls: "",
   };
-  
 
   // if the logged-in user is the same as the URL poster,
   // take all the URLs belonging to the user and put them in templateVars
@@ -150,9 +143,11 @@ app.get("/urls", (req, res) => {
     if (urlDatabase[key]["userID"] === user["id"]) {
       templateVars["urls"] = usersURLs;
     }
-  };
+  }
+
   res.render("urls_index", templateVars);
 });
+
 
 
 // adds new URL to database from the "create a new URL" page
@@ -163,6 +158,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   
   const longURL = req.body.longURL;
+  
   urlDatabase[shortURL] = {
     longURL: `http://${longURL}`,
     userID: user["id"]
@@ -172,23 +168,27 @@ app.post("/urls", (req, res) => {
 });
 
 
+
 // prints urlDatabase as an object
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
 
+
 // displaying new URL form to input new longURL & add it to the list
 app.get("/urls/new", (req, res) => {
-  const user = users[req.session.user_id];   /////////////////
+  const user = users[req.session.user_id];
+  
   const templateVars = {user: user};
 
   if (!user) {
     res.render("urls_login", templateVars);
   } else {
     res.render("urls_new", templateVars);
-  };
+  }
 });
+
 
 
 // edit button route
@@ -204,7 +204,7 @@ app.get("/urls/:shortURL", (req, res) => {
     // res.render("urls_login", templateVarsNull);
     res.send("Please login first");
     return;
-  };
+  }
   
   const shortURLvar = req.params.shortURL;
   
@@ -224,13 +224,13 @@ app.get("/urls/:shortURL", (req, res) => {
       res.render("urls_show", templateVars); // display the file urls_show.ejs
       return;
     }
-  };
+  }
 
   for (const key in usersURLs) {
     if (key !== shortURLvar || !key) {
       res.send("Sorry, you don't have permission to access");
     }
-  };
+  }
 
 });
 
@@ -256,10 +256,9 @@ app.post("/urls/:shortURL", (req, res) => {
   if (!user) {
     res.render("urls_login", templateVarsNull);
     return;
-  };
+  }
 
   const idToEdit = req.body["updated URL"];   // "updated URL" from url_show.ejs
-  // console.log("idToEdit before: ", idToEdit);
   
   const shortURLKey = req.params["shortURL"];
   
@@ -274,10 +273,12 @@ app.post("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   
   const shortURLvar = req.params.shortURL;
+  
   const longURL = urlDatabase[shortURLvar]["longURL"];
   
   res.redirect(longURL);
 });
+
 
 
 // delete button, delete a specified saved shortURL
@@ -289,7 +290,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   if (!user) {
     res.render("urls_login", templateVarsNull);
     return;
-  };
+  }
   
   const usersURLs = urlsForUser(req.session.user_id);
   
@@ -303,7 +304,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     if (urlDatabase[key]["userID"] === user["id"]) {
       templateVars["urls"] = usersURLs;
     }
-  };
+  }
 
   const idToDelete = req.params.shortURL;
   delete urlDatabase[idToDelete];
@@ -319,7 +320,6 @@ app.get("/login", (req, res) => {
     user: users[req.session.user_id],
     urls: urlDatabase
   };
-  console.log(users);
 
   res.render("urls_login", templateVars);
 });
@@ -335,6 +335,9 @@ app.post("/login", (req, res) => {
   
   const user = getIDByEmail(email, users);
   
+  // if user exists & if password is the same, redirect to urls
+  // if user exists & if password is different, send wrong password
+  // if no user exists, please register
   if (user) {
     const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
     if (comparePassword) {
@@ -349,9 +352,8 @@ app.post("/login", (req, res) => {
     return;
   }
 
-    // res.cookie("id", user.id); // "id" is the name of the cookie, then variable
-    // req.session.user_id = user.id;       //////////////
-    // res.redirect("/urls");
+  // with cookie-parser:
+  // res.cookie("id", user.id); // "id" is the name of the cookie, then variable
 
 });
 
@@ -364,6 +366,7 @@ app.post("/logout", (req, res) => {
 });
 
 
+
 // registration page
 app.get("/register", (req, res) => {
   const templateVars = {user: null};
@@ -371,14 +374,17 @@ app.get("/register", (req, res) => {
 });
 
 
+
 // registration button route
 app.post("/register", (req, res) => {
   const email = req.body.email;
+  
   const password = req.body.password;
+  
   if (!email || !password) {
     res.status(400).send("Empty email and/or empty password");
     return;
-  };
+  }
   
   const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -390,7 +396,6 @@ app.post("/register", (req, res) => {
     const id = generateRandomUserID();
     
     const newUser = {id, email, password: hashedPassword};
-    // console.log(newUser);
     users[id] = newUser;
     
     req.session.user_id = newUser.id;
