@@ -32,20 +32,21 @@ app.set("view engine", "ejs");
 // key is shortURL
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "userRandomID" }
+  "9sm5xK": { longURL: "http://www.google.com", userID: "userRandomID" },
+  "UoEkj7": { longURL: "http://www.facebook.com", userID: "user2RandomID" }
 };
 
-// users global object
+
 const users = {
   "userRandomID": {
-    id: "userRandomID",
-    email: "1@1.com",
-    password: "1"
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
   },
   "user2RandomID": {
-    id: "user2RandomID",
-    email: "2@2.com",
-    password: "2"
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
   }
 };
 
@@ -130,7 +131,8 @@ app.get("/urls", (req, res) => {
   const templateVarsNull = {user: user};
 
   if (!user) {
-    res.render("urls_login", templateVarsNull);
+    // res.render("urls_login", templateVarsNull);
+    res.send("Please login first");
     return;
   };
   
@@ -199,7 +201,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVarsNull = {user: user};
 
   if (!user) {
-    res.render("urls_login", templateVarsNull);
+    // res.render("urls_login", templateVarsNull);
+    res.send("Please login first");
     return;
   };
   
@@ -213,26 +216,40 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: usersURLs[shortURLvar]
   };
   
-  // check if shortURLvar is inside the result object as a key
+  // check if shortURLvar is inside the usersURLs object as a key
   // if false, sorry you don't have permission to access
+  
   for (const key in usersURLs) {
-      if (key === shortURLvar) {
-        res.render("urls_show", templateVars); // display the file urls_show.ejs
-        return;
-      } else {
-        res.send("Sorry, you don't have permission to access");
-      }
+    if (key === shortURLvar) {
+      res.render("urls_show", templateVars); // display the file urls_show.ejs
+      return;
+    }
   };
+
+  for (const key in usersURLs) {
+    if (key !== shortURLvar || !key) {
+      res.send("Sorry, you don't have permission to access");
+    }
+  };
+
 });
+
 // the :shortURL is stored inside req.params.
 // This is called dynamic URL bcs the :shortURL will change according to what it is
 // req.params is used when you're taking dynamic value for the URL
 // req.body is used when you're taking data from an input form textbox
 
+// multiple res.render in the same app.get will result in an error
+// to break it, add a "return;"
+
+// with the else statement in the for loop, logging in as 1st user trying to access its own link gives an error message
+// without the else statement and without another for loop, logging in as 2nd user trying to access 1st user's link showed an error message that there are multiple res.render.
+
+
 
 // update button route inside the edit button link ... broken, need to fix later
 app.post("/urls/:shortURL", (req, res) => {
-  const user = users[req.session.user_id];     ///////////////
+  const user = users[req.session.user_id];
   
   const templateVarsNull = {user: user};
 
@@ -265,7 +282,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 // delete button, delete a specified saved shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = users[req.session.user_id];       /////////////
+  const user = users[req.session.user_id];
 
   const templateVarsNull = {user: user};
 
@@ -274,7 +291,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return;
   };
   
-  const usersURLs = urlsForUser(req.session.user_id);   //////////////
+  const usersURLs = urlsForUser(req.session.user_id);
   
   const templateVars = {
     user: user,
@@ -295,6 +312,19 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 
+// login button from login page
+app.get("/login", (req, res) => {
+  
+  const templateVars = {
+    user: users[req.session.user_id],
+    urls: urlDatabase
+  };
+  console.log(users);
+
+  res.render("urls_login", templateVars);
+});
+
+
 // login button route, on header
 app.post("/login", (req, res) => {
 
@@ -308,10 +338,10 @@ app.post("/login", (req, res) => {
   if (user) {
     const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
     if (comparePassword) {
-      req.session.user_id = user.id;       //////////////
+      req.session.user_id = user.id;
       res.redirect("/urls");
     } else if (!comparePassword) {
-      res.status(403).send("Wrong password, go back to login page");
+      res.status(403).send("Wrong password, go back to login page and try again");
       return;
     }
   } else if (!user) {
@@ -326,21 +356,10 @@ app.post("/login", (req, res) => {
 });
 
 
-// login button from login page
-app.get("/login", (req, res) => {
-  
-  const templateVars = {
-    user: users[req.session.user_id],
-    urls: urlDatabase
-  };
-
-  res.render("urls_login", templateVars);
-});
-
 
 // logout button route
 app.post("/logout", (req, res) => {
-  res.clearCookie("id");
+  req.session = null;
   res.redirect("/login");
 });
 
@@ -355,17 +374,17 @@ app.get("/register", (req, res) => {
 // registration button route
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  if (!email) {
-    res.status(400).send("Empty email");
+  const password = req.body.password;
+  if (!email || !password) {
+    res.status(400).send("Empty email and/or empty password");
     return;
   };
   
-  const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const userData = getIDByEmail(email, users);
   if (userData !== false) {
-    res.status(404).send("This user already exists");   // set error number
+    res.status(404).send("This user already exists");
     return;
   } else {
     const id = generateRandomUserID();
