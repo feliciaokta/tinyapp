@@ -90,12 +90,13 @@ const getIDByEmail = require("./helpers");
 // function to return URLs where the userID is equal to the current logged-in user
 const urlsForUser = (id) => {
   // use Object.keys for shortURL
-  // for loop all keys
-  // when they match, add into an empty object
+  
   let result = {};
   let shortURLKey = Object.keys(urlDatabase);
-
   
+  
+  // for loop all object keys
+  // when they match, add into an empty object
   for (const key in shortURLKey) {
       let serialNumbers = shortURLKey[key];
     if (id === urlDatabase[serialNumbers]["userID"]) {
@@ -124,22 +125,25 @@ app.get("/hello", (req, res) => {
 // "HOMEPAGE"
 // shows all URLs (both long and short), edit button, delete button
 app.get("/urls", (req, res) => {
-  const user = users[req.session.user_id];  //////////////
+  const user = users[req.session.user_id];
+  
+  const templateVarsNull = {user: user};
 
   if (!user) {
-    res.render("urls_login");
+    res.render("urls_login", templateVarsNull);
     return;
   };
   
   const usersURLs = urlsForUser(req.session.user_id);  ////////////
-  console.log("user: ", user);
-  console.log(usersURLs);
   
   const templateVars = {
     user: user,
     urls: "",
   };
+  
 
+  // if the logged-in user is the same as the URL poster,
+  // take all the URLs belonging to the user and put them in templateVars
   for (const key in usersURLs) {
     if (urlDatabase[key]["userID"] === user["id"]) {
       templateVars["urls"] = usersURLs;
@@ -176,7 +180,7 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const user = users[req.session.user_id];   /////////////////
   const templateVars = {user: user};
-  // console.log("user: ", user);
+
   if (!user) {
     res.render("urls_login", templateVars);
   } else {
@@ -189,18 +193,19 @@ app.get("/urls/new", (req, res) => {
 // displaying the page about a single URL, both the long one on top & short one below it
 app.get("/urls/:shortURL", (req, res) => {
   // use urlsForUser(id) to return the list of short URLs that belong to the user
-  // check if shortURLvar is inside this object as a key
-  // if false, sorry you don't have permission to access
-
-  const user = users[req.session.user_id];       /////////////
+  
+  const user = users[req.session.user_id];
+  
+  const templateVarsNull = {user: user};
 
   if (!user) {
-    res.render("urls_login");
+    res.render("urls_login", templateVarsNull);
+    return;
   };
-
+  
   const shortURLvar = req.params.shortURL;
   
-  const usersURLs = urlsForUser(users[req.session.user_id]["id"]); /////////
+  const usersURLs = urlsForUser(users[req.session.user_id]["id"]);
   
   const templateVars = {
     user: user,
@@ -208,10 +213,14 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: usersURLs[shortURLvar]
   };
   
+  // check if shortURLvar is inside the result object as a key
+  // if false, sorry you don't have permission to access
   for (const key in usersURLs) {
       if (key === shortURLvar) {
         res.render("urls_show", templateVars); // display the file urls_show.ejs
         return;
+      } else {
+        res.send("Sorry, you don't have permission to access");
       }
   };
 });
@@ -224,9 +233,12 @@ app.get("/urls/:shortURL", (req, res) => {
 // update button route inside the edit button link ... broken, need to fix later
 app.post("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];     ///////////////
+  
+  const templateVarsNull = {user: user};
 
   if (!user) {
-    res.render("urls_login");
+    res.render("urls_login", templateVarsNull);
+    return;
   };
 
   const idToEdit = req.body["updated URL"];   // "updated URL" from url_show.ejs
@@ -254,9 +266,12 @@ app.get("/u/:shortURL", (req, res) => {
 // delete button, delete a specified saved shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user = users[req.session.user_id];       /////////////
-  
+
+  const templateVarsNull = {user: user};
+
   if (!user) {
-    res.render("urls_login");
+    res.render("urls_login", templateVarsNull);
+    return;
   };
   
   const usersURLs = urlsForUser(req.session.user_id);   //////////////
