@@ -23,7 +23,6 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const bcrypt = require('bcryptjs');
-const salt = bcrypt.genSaltSync(10);
 
 app.set("view engine", "ejs");
 
