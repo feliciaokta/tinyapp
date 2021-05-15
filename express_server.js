@@ -6,8 +6,18 @@ const PORT = 8080; // default port 8080
 const morgan = require('morgan');
 app.use(morgan('dev'));
 
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
+// const cookieParser = require("cookie-parser");
+// app.use(cookieParser());
+
+const cookieSession = require('cookie-session');
+const Keygrip = require('keygrip');
+app.use(cookieSession({
+  name: 'session',
+  keys: new Keygrip(['key1', 'key2'], 'SHA384', 'base64'),
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -111,13 +121,16 @@ app.get("/hello", (req, res) => {
 // "HOMEPAGE"
 // shows all URLs (both long and short), edit button, delete button
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies["id"]];
-  
+  const user = users[req.session.user_id];  //////////////
+
   if (!user) {
     res.render("urls_login");
+    return;
   };
   
-  const usersURLs = urlsForUser(req.cookies["id"]);
+  const usersURLs = urlsForUser(req.session.user_id);  ////////////
+  console.log("user: ", user);
+  console.log(usersURLs);
   
   const templateVars = {
     user: user,
@@ -136,7 +149,7 @@ app.get("/urls", (req, res) => {
 // adds new URL to database from the "create a new URL" page
 app.post("/urls", (req, res) => {
   
-  const user = users[req.cookies["id"]];
+  const user = users[req.session.user_id];     //////////////
 
   const shortURL = generateRandomString();
   
@@ -158,7 +171,7 @@ app.get("/urls.json", (req, res) => {
 
 // displaying new URL form to input new longURL & add it to the list
 app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies["id"]];
+  const user = users[req.session.user_id];   /////////////////
   const templateVars = {user: user};
   // console.log("user: ", user);
   if (!user) {
@@ -176,7 +189,7 @@ app.get("/urls/:shortURL", (req, res) => {
   // check if shortURLvar is inside this object as a key
   // if false, sorry you don't have permission to access
 
-  const user = users[req.cookies["id"]];
+  const user = users[req.session.user_id];       /////////////
 
   if (!user) {
     res.render("urls_login");
@@ -184,7 +197,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   const shortURLvar = req.params.shortURL;
   
-  const usersURLs = urlsForUser(users[req.cookies["id"]]["id"]);
+  const usersURLs = urlsForUser(users[req.session.user_id]["id"]); /////////
   
   const templateVars = {
     user: user,
@@ -207,7 +220,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // update button route inside the edit button link ... broken, need to fix later
 app.post("/urls/:shortURL", (req, res) => {
-  const user = users[req.cookies["id"]];
+  const user = users[req.session.user_id];     ///////////////
 
   if (!user) {
     res.render("urls_login");
@@ -237,13 +250,13 @@ app.get("/u/:shortURL", (req, res) => {
 
 // delete button, delete a specified saved shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = users[req.cookies["id"]];
+  const user = users[req.session.user_id];       /////////////
   
   if (!user) {
     res.render("urls_login");
   };
   
-  const usersURLs = urlsForUser(req.cookies["id"]);
+  const usersURLs = urlsForUser(req.session.user_id);   //////////////
   
   const templateVars = {
     user: user,
@@ -273,16 +286,25 @@ app.post("/login", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   
   const user = getUserByEmail(email, users);
-  const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
-
-  if (!user) {
+  
+  if (user) {
+    const comparePassword = bcrypt.compareSync(user.password, hashedPassword);
+    if (comparePassword) {
+      req.session.user_id = user.id;       //////////////
+      res.redirect("/urls");
+    } else if (!comparePassword) {
+      res.status(403).send("Wrong password, go back to login page");
+      return;
+    }
+  } else if (!user) {
     res.status(403).send("User doesn't exist, please register");
-  } else if (!comparePassword) {
-    res.status(403).send("Wrong password, go back to login page");
-  } else {
-    res.cookie("id", user.id); // "id" is the name of the cookie, then variable
-    res.redirect("/urls");
+    return;
   }
+
+    // res.cookie("id", user.id); // "id" is the name of the cookie, then variable
+    // req.session.user_id = user.id;       //////////////
+    // res.redirect("/urls");
+
 });
 
 
@@ -290,7 +312,7 @@ app.post("/login", (req, res) => {
 app.get("/login", (req, res) => {
   
   const templateVars = {
-    user: users[req.cookies["id"]],
+    user: users[req.session.user_id],
     urls: urlDatabase
   };
 
@@ -331,10 +353,10 @@ app.post("/register", (req, res) => {
     const id = generateRandomUserID();
     
     const newUser = {id, email, password: hashedPassword};
-    console.log(newUser);
+    // console.log(newUser);
     users[id] = newUser;
     
-    res.cookie("id", id);
+    req.session.user_id = newUser.id;
     res.redirect("/urls");    // post is with redirect, get is with render
   }
 });
