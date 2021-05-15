@@ -121,7 +121,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const user = users[req.session.user_id];
   
-  const templateVarsNull = {user: user};
+  // const templateVarsNull = {user: user};
 
   if (!user) {
     // res.render("urls_login", templateVarsNull);
@@ -129,7 +129,7 @@ app.get("/urls", (req, res) => {
     return;
   }
   
-  const usersURLs = urlsForUser(req.session.user_id);  ////////////
+  const usersURLs = urlsForUser(req.session.user_id);
   
   const templateVars = {
     user: user,
@@ -152,7 +152,7 @@ app.get("/urls", (req, res) => {
 // adds new URL to database from the "create a new URL" page
 app.post("/urls", (req, res) => {
   
-  const user = users[req.session.user_id];     //////////////
+  const user = users[req.session.user_id];
 
   const shortURL = generateRandomString();
   
