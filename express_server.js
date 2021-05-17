@@ -1,16 +1,33 @@
-const express = require("express");
-const app = express();
-
 const PORT = 8080;
 
+const express = require("express");
+
+const bodyParser = require("body-parser");
+
 const morgan = require('morgan');
+
+const cookieSession = require('cookie-session');    // previously cookie-parser
+
+const bcrypt = require('bcryptjs');
+
+const Keygrip = require('keygrip');
+
+const getIDByEmail = require("./helpers");
+
+const generateRandomString = require("./helpers");
+
+
+
+const app = express();
+
+app.set("view engine", "ejs");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(morgan('dev'));
 
-// const cookieParser = require("cookie-parser");
 // app.use(cookieParser());
 
-const cookieSession = require('cookie-session');
-const Keygrip = require('keygrip');
 app.use(cookieSession({
   name: 'session',
   keys: new Keygrip(['key1', 'key2'], 'SHA384', 'base64'),
@@ -19,12 +36,6 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: true }));
-
-const bcrypt = require('bcryptjs');
-
-app.set("view engine", "ejs");
 
 
 // urls global object
@@ -35,7 +46,7 @@ const urlDatabase = {
   "UoEkj7": { longURL: "http://www.facebook.com", userID: "user2RandomID" }
 };
 
-
+// users database global object
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -48,35 +59,6 @@ const users = {
     password: "dishwasher-funk"
   }
 };
-
-
-// generate 6 random letters for shortURL
-function generateRandomString() {
-  let result = [];
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for (var i = 0; i < 6; i++) {
-    result.push(characters.charAt(Math.floor(Math.random() *
-      charactersLength)));
-  }
-  return result.join('');
-}
-
-
-// function to generate 9 characters for random user ID
-function generateRandomUserID() {
-  let result = [];
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for (var i = 0; i < 9; i++) {
-    result.push(characters.charAt(Math.floor(Math.random() *
-    charactersLength)));
-  }
-  return result.join('');
-}
-
-
-const getIDByEmail = require("./helpers");
 
 
 
@@ -152,10 +134,9 @@ app.get("/urls", (req, res) => {
 
 // adds new URL to database from the "create a new URL" page
 app.post("/urls", (req, res) => {
-  
   const user = users[req.session.user_id];
 
-  const shortURL = generateRandomString();
+  const shortURL = generateRandomString(6);
   
   const longURL = req.body.longURL;
   
@@ -247,7 +228,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
 
-// update button route inside the edit button link ... broken, need to fix later
+// update button route inside the edit
 app.post("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];
   
@@ -271,7 +252,6 @@ app.post("/urls/:shortURL", (req, res) => {
 
 // after putting in the shortURL in the address bar & pressing enter, we get redirected to the longURL
 app.get("/u/:shortURL", (req, res) => {
-  
   const shortURLvar = req.params.shortURL;
   
   const longURL = urlDatabase[shortURLvar]["longURL"];
@@ -315,7 +295,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // login button from login page
 app.get("/login", (req, res) => {
-  
   const templateVars = {
     user: users[req.session.user_id],
     urls: urlDatabase
@@ -328,7 +307,6 @@ app.get("/login", (req, res) => {
 
 // login button route, on header
 app.post("/login", (req, res) => {
-
   const email = req.body.email;
 
   const password = req.body.password;
@@ -395,7 +373,7 @@ app.post("/register", (req, res) => {
     res.status(404).send("This user already exists");
     return;
   } else {
-    const id = generateRandomUserID();
+    const id = generateRandomString(9);
     
     const newUser = {id, email, password: hashedPassword};
     users[id] = newUser;

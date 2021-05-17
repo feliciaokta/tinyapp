@@ -8,4 +8,19 @@ const getUserByEmail = (email, users) => {
     return false;
 };
 
-module.exports = getUserByEmail;
+
+// function to generate random string for shortURL and userID
+function generateRandomString(stringLength) {
+  let result = [];
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let charactersLength = characters.length;
+  for (var i = 0; i < stringLength; i++) {
+    result.push(characters.charAt(Math.floor(Math.random() *
+      charactersLength)));
+  }
+  return result.join('');
+}
+
+
+
+module.exports = getUserByEmail, generateRandomString(stringLength);
