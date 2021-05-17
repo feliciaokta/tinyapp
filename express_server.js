@@ -121,11 +121,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const user = users[req.session.user_id];
   
-  // const templateVarsNull = {user: user};
+  const templateVarsNull = {user: user};
 
   if (!user) {
-    // res.render("urls_login", templateVarsNull);
-    res.send("Please login first");
+    res.render("urls_login", templateVarsNull);
+    // res.send("Please login first");
     return;
   }
   
@@ -146,6 +146,7 @@ app.get("/urls", (req, res) => {
 
   res.render("urls_index", templateVars);
 });
+
 
 
 
@@ -324,6 +325,7 @@ app.get("/login", (req, res) => {
 });
 
 
+
 // login button route, on header
 app.post("/login", (req, res) => {
 
@@ -355,6 +357,7 @@ app.post("/login", (req, res) => {
   // res.cookie("id", user.id); // "id" is the name of the cookie, then variable
 
 });
+// problem: when a new user registers & logs in, then logs out, that user can't login again. Error message is "wrong password"
 
 
 
