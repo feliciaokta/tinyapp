@@ -1,11 +1,11 @@
 // function used in registration
-const getUserByEmail = (email, users) => {
+const getIDByEmail = (email, users) => {
   for (const user in users) {
-    if (users[user].email === email) {
+    if (email === users[user]["email"]) {
       return users[user];
     }
   }
-    return false;
+  return false;
 };
 
 
@@ -23,4 +23,4 @@ function generateRandomString(stringLength) {
 
 
 
-module.exports = getUserByEmail, generateRandomString(stringLength);
+module.exports = {getIDByEmail, generateRandomString};

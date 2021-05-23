@@ -1,31 +1,20 @@
-const PORT = 8080;
+const PORT                 = 8080;
 
-const express = require("express");
-
-const bodyParser = require("body-parser");
-
-const morgan = require('morgan');
-
-const cookieSession = require('cookie-session');    // previously cookie-parser
-
-const bcrypt = require('bcryptjs');
-
-const Keygrip = require('keygrip');
-
-const getIDByEmail = require("./helpers");
-
-const generateRandomString = require("./helpers");
-
+const express              = require("express");
+const bodyParser           = require("body-parser");
+const morgan               = require('morgan');
+const cookieSession        = require('cookie-session');    // previously cookie-parser
+const bcrypt               = require('bcryptjs');
+const Keygrip              = require('keygrip');
+const {getIDByEmail}         = require("./helpers");
+const {generateRandomString} = require("./helpers");
 
 
 const app = express();
 
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(morgan('dev'));
-
 // app.use(cookieParser());
 
 app.use(cookieSession({
@@ -369,15 +358,16 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const userData = getIDByEmail(email, users);
-  if (userData !== false) {
+  if (userData) {
     res.status(404).send("This user already exists");
     return;
-  } else {
+
+  } else if (!userData) {
     const id = generateRandomString(9);
     
-    const newUser = {id, email, password: hashedPassword};
+    const newUser = {id: id, email, password};
     users[id] = newUser;
-    
+
     req.session.user_id = newUser.id;
     res.redirect("/urls");    // post is with redirect, get is with render
   }
